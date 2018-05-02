@@ -2,13 +2,18 @@
 
 #PCA with Linear Regression
 
+import MatrixReader
 import MatrixCreator
 import DimensionReducer
 import CrossVal
 from sklearn.linear_model import LinearRegression
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.neighbors import KNeighborsRegressor
 
 class PCAMLR:
-    def __init__(self, train, train_returns, test, test_returns, freq_type, stopwords, svals, reduce_type, folds):
+    def __init__(self, train, train_returns, test, test_returns, freq_type, stopwords, svals, reduce_type):
         self.train = train
         self.train_returns = train_returns
         self.test = test
@@ -17,7 +22,6 @@ class PCAMLR:
         self.stopwords = stopwords
         self.svals = svals
         self.reduce_type = reduce_type
-        self.folds = folds
         self.results = None
 
     def run(self):
@@ -29,23 +33,35 @@ class PCAMLR:
         reduced_train = dim_reducer.reduce_dimension(self.svals, self.reduce_type)
         reduced_test = dim_reducer.reduce_more(new_test.todense())
 
-        cross_val = CrossVal.CrossVal(reduced_train, self.train_returns, reduced_test, self.test_returns, self.folds)
-        final_folds = cross_val.create_folds1()
-        final_test, final_test_return = cross_val.shuffle_test()
+        cross_val = CrossVal.CrossVal(reduced_train, self.train_returns, reduced_test, self.test_returns, 2)
+        final_folds = cross_val.get_decile_indices(self.test_returns)
 
-        scores = self.predict(final_folds, final_test, final_test_return)
-        print('Scores: ', scores)
+        scores = self.predict(reduced_train, self.train_returns, reduced_test, final_folds)
+        self.interpret_scores(scores)
 
-    def predict(self, final_folds, final_test, final_test_return):
+    def predict(self, reduced_train, train_returns, reduced_test, final_folds):
         scores = []
-        for i in range(self.folds):
-            lm = LinearRegression()
-            lm.fit(final_folds[i][0], final_folds[i][1])
-            vals = lm.predict(final_test)
-            print('Vals: ', vals)
-            score = lm.score(final_test, final_test_return)
-            scores.append(score)
+        #lm = LinearRegression()
+        #lm = RandomForestRegressor(n_estimators=100)
+        lm = KNeighborsRegressor(n_neighbors=3, weights='distance')
+        lm.fit(reduced_train, train_returns)
+        print(type(train_returns[0]))
+        for i in range(len(final_folds)):
+            fold_stuff = np.take(reduced_test, final_folds[i], axis=0)
+            vals = lm.predict(fold_stuff)
+            scores.append(vals)
         return scores
+
+    def interpret_scores(self, scores):
+        data = []
+        for score_list in scores:
+            data.append(np.median(score_list))
+        print(data)
+        plt.xlabel('Quintiles')
+        plt.ylabel('Returns')
+        plt.title('Linear Regression')
+        plt.plot(data, '-o', ms=20, lw=2, alpha=0.7, mfc='orange')
+        plt.show()
 
 
 

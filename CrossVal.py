@@ -35,9 +35,12 @@ class CrossVal:
         list_of_matrices = []
         for i in range(self.folds):
             reduced_matrix = np.delete(train_data, list_of_lists[i], axis=0)
+            nonreduced_matrix = np.take(train_data, list_of_lists[i], axis=0)
             reduced_train = reduced_matrix[:, 1:]
             reduced_train_returns = reduced_matrix[:, 0]
-            list_of_matrices.append([reduced_train, reduced_train_returns])
+            nonreduced_train = nonreduced_matrix[:,1:]
+            nonreduced_returns = nonreduced_matrix[:, 0].reshape(-1, 1)
+            list_of_matrices.append([reduced_train, reduced_train_returns, nonreduced_train, nonreduced_returns])
         return list_of_matrices
 
     def shuffle_test(self):
@@ -46,3 +49,25 @@ class CrossVal:
         shuffled_test = test_data[:, 1:]
         shuffled_test_return = test_data[:, 0]
         return shuffled_test, shuffled_test_return
+
+    def get_decile_indices(self, returns):
+        stuffz = np.zeros(5)
+        bins = []
+        sorted_returns = list(reversed(sorted(returns)))
+        for i in range(len(returns)):
+            stuffz[i % 5] += 1
+
+        current_index = 0
+        for num in stuffz:
+            bin = []
+            for j in range(int(num)):
+                the_return = sorted_returns[current_index]
+                for k in range(len(returns)):
+                    if the_return == returns[k]:
+                        bin.append(k)
+                current_index += 1
+            bins.append(bin)
+        return bins
+
+
+
