@@ -1,13 +1,14 @@
-#Loren Anderson
+# Loren Anderson
 
-#dimensionality reduction techniques
+# dimensionality reduction on the count matrix
 
 import matplotlib.pyplot as plt
 import sklearn.decomposition.pca
 from sklearn.decomposition import NMF, LatentDirichletAllocation
 from sklearn.random_projection import GaussianRandomProjection
 
-class DimensionReducer:
+
+class Reducer:
     def __init__(self, sparse_count_matrix):
         self.sparse_count_matrix = sparse_count_matrix
         self.reduced = sparse_count_matrix
@@ -26,31 +27,26 @@ class DimensionReducer:
         elif reduce_type == 'lda':
             reducer = LatentDirichletAllocation(n_topics=svals, max_iter=5, learning_method='online',
                                             learning_offset=50., random_state=0)
-            reduced = reducer.fit_transform(reduce_type)
+            reduced = reducer.fit_transform(self.sparse_count_matrix)
         elif reduce_type == 'grp':
             reducer = GaussianRandomProjection(n_components=svals)
             reduced = reducer.fit_transform(self.sparse_count_matrix)
         else:
             reduced = self.sparse_count_matrix
+            reducer = None
         self.reducer = reducer
         self.reduced = reduced
         return reduced
 
-    def reduce_more(self, more_data):
+    def reduce_more_data(self, more_data):
         more_reduced = self.reducer.transform(more_data)
         return more_reduced
-
-    def return_reducer(self):
-        return self.reducer
-
-    def return_matrix(self):
-        return self.sparse_count_matrix
 
     def return_reduced(self):
         return self.reduced
 
-    def analyze_pca(self, svals):
-        pca = sklearn.decomposition.pca.PCA(n_components=svals)
+    def analyze_pca(self):
+        pca = sklearn.decomposition.pca.PCA()
         pca.fit_transform(self.sparse_count_matrix.todense())
         variance = pca.explained_variance_
         variance_ratio = pca.explained_variance_ratio_
