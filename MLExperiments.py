@@ -36,15 +36,15 @@ class ML:
         if method == 'lr':
             lm = LinearRegression()
         elif method == 'knn':
-            lm = KNeighborsRegressor(n_neighbors=7, weights='distance')
+            lm = KNeighborsRegressor(n_neighbors=3, weights='distance')
         else:
-            lm = RandomForestRegressor(n_estimators=10)
+            lm = RandomForestRegressor(n_estimators=100)
         lm.fit(reduced_train_count_matrix, train_returns)
 
         # predict
         scores = []
-        for bin in bins:
-            decile = np.take(reduced_test_count_matrix, bin, axis=0)
+        for the_bin in bins:
+            decile = np.take(reduced_test_count_matrix, the_bin, axis=0)
             vals = lm.predict(decile)
             scores.append(vals)
         return scores
@@ -52,7 +52,7 @@ class ML:
     def interpret_scores(self, scores):
         data = []
         for score_list in scores:
-            data.append(np.median(score_list))
+            data.append(np.mean(score_list))
         print(data)
         plt.xlabel('Deciles')
         plt.ylabel('Returns')

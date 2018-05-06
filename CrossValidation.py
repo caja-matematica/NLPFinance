@@ -20,14 +20,14 @@ class CrossVal:
         sorted_returns = list(sorted(returns))
         current_index = 0
         for indices in bin_counts:
-            bin = []
+            the_bin = []
             for j in range(int(indices)):
                 the_return = sorted_returns[current_index]
                 for k in range(len(returns)):
                     if the_return == returns[k]:
-                        bin.append(k)
+                        the_bin.append(k)
                 current_index += 1
-            bins.append(bin)
+            bins.append(the_bin)
         return bins
 
     def get_bins(self):

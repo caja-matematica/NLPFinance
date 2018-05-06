@@ -12,19 +12,20 @@ class FileSize:
         self.run(train_returns, train_sizes, bin_number)
 
     def run(self, train_returns, train_sizes, bin_number):
-        cross_val = CrossValidation.CrossVal(train_returns, bin_number)
+        cross_val = CrossValidation.CrossVal(train_sizes, bin_number)
         bins = cross_val.get_bins()
 
-        scores = self.predict(train_sizes, bins)
+        scores = self.predict(train_returns, bins)
         self.interpret_scores(scores)
+        print(scores)
 
-    def predict(self, train_sizes, final_folds):
+    def predict(self, train_returns, final_folds):
         final_scores = []
         for fold in final_folds:
             small_list = []
             for index in fold:
-                small_list.append(int(train_sizes[index]))
-            final_scores.append(np.median(small_list))
+                small_list.append(float(train_returns[index]))
+            final_scores.append(np.mean(small_list))
         return final_scores
 
     def interpret_scores(self, scores):
